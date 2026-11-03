@@ -1,3 +1,4 @@
+// bukti SS berhasil jalan di HP: https://drive.google.com/drive/u/2/folders/14W6ZCeDPVuZLH28n1yRuzTJiZfpUqL29
 {
   "expo": {
     "name": "katalogku",
@@ -5,7 +6,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
     },
@@ -19,6 +20,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
