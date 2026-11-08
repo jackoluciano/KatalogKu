@@ -14,7 +14,7 @@ export default function CustomInput({ label, error, icon, ...rest }) {
       <View style={[styles.box, { borderColor: colors.border, backgroundColor: colors.card }, error && { borderColor: colors.danger }]}>
         {icon ? <Ionicons name={icon} size={24} color={colors.muted} /> : null}
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: colors.text }]}
           placeholderTextColor={colors.muted}
           {...rest}
         />

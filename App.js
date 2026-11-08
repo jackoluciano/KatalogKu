@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
-  ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Switch, Text, View, useColorScheme,
+  ActivityIndicator, FlatList, Image, Pressable, ScrollView, StyleSheet, Switch, Text, View,
+  useColorScheme, useWindowDimensions,
 } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,21 +11,16 @@ import HeaderBar from './src/components/HeaderBar';
 import Button from './src/components/Button';
 import Card from './src/components/Card';
 import CustomInput from './src/components/CustomInput';
-import Chip from './src/components/Chip';
+import CategoryChips from './src/components/CategoryChips';
 import Rating from './src/components/Rating.js';
 import { DARK_COLORS, LIGHT_COLORS } from './src/theme/colors';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
-
-const PRODUCTS = [
-  { title: 'Kemeja Batik Parang', price: 25, category: 'fashion', image: require('./assets/tee.png'), description: 'Kemeja batik motif parang, bahan katun adem.', rating: 4.6 },
-  { title: 'Kopi Gayo 250 gr', price: 9, category: 'groceries', image: require('./assets/shelf.png'), description: 'Kopi Gayo pilihan dengan aroma khas.', rating: 4.8 },
-  { title: 'Earphone Bluetooth', price: 19, category: 'electronics', image: require('./assets/beanie.png'), discount: 10, description: 'Audio jernih dengan koneksi Bluetooth.', rating: 4.4 },
-  { title: 'Tas Ransel Laptop', price: 32, category: 'fashion', image: require('./assets/cap.png'), description: 'Tas laptop praktis untuk aktivitas harian.', rating: 4.5 },
-];
+import { DUMMY_PRODUCTS } from './src/data/dummy';
+import { SHADOW_CARD } from './src/theme/tokens';
 
 export default function App() {
   const systemScheme = useColorScheme();
-  const [themeMode, setThemeMode] = useState('system');
+  const [themeMode, setThemeMode] = useState('light');
   const [fontsLoaded] = useFonts({
     TitanOne_400Regular, Inter_400Regular, Inter_700Bold,
     TomoTrompaPro: require('./assets/fonts/TOMO-TROMPA-PRO.ttf'),
@@ -49,7 +45,7 @@ function CatalogApp({ themeMode, setThemeMode }) {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('Semua');
 
-  const visibleProducts = useMemo(() => PRODUCTS.filter((product) => (
+  const visibleProducts = useMemo(() => DUMMY_PRODUCTS.filter((product) => (
     (category === 'Semua' || product.category === category)
     && product.title.toLowerCase().includes(search.toLowerCase())
   )), [category, search]);
@@ -91,33 +87,59 @@ function CatalogApp({ themeMode, setThemeMode }) {
 }
 
 function HomePage({ products, search, setSearch, category, setCategory, onProduct }) {
+  const { width } = useWindowDimensions();
+  const numColumns = width >= 768 ? 4 : width >= 500 ? 3 : 2;
+
   return (
     <>
       <HeaderBar title="KATALOGKU" subtitle="Temukan produk favorit" />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <CustomInput icon="search" placeholder="Cari produk..." value={search} onChangeText={setSearch} />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-          {['Semua', 'fashion', 'groceries', 'electronics'].map((item) => (
-            <Chip key={item} label={item} active={category === item} onPress={() => setCategory(item)} />
-          ))}
-        </ScrollView>
-        <View style={styles.grid}>
-          {products.map((product) => <Card key={product.title} {...product} onPress={() => onProduct(product)} />)}
-        </View>
-      </ScrollView>
+      <FlatList
+        data={products}
+        numColumns={numColumns}
+        key={numColumns}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+        columnWrapperStyle={styles.grid}
+        ListHeaderComponent={
+          <>
+            <CustomInput icon="search" placeholder="Cari produk..." value={search} onChangeText={setSearch} />
+            <CategoryChips
+              items={['Semua', 'fashion', 'groceries', 'electronics']}
+              selected={category}
+              onSelect={setCategory}
+            />
+          </>
+        }
+        renderItem={({ item }) => (
+          <Card {...item} columns={numColumns} onPress={() => onProduct(item)} />
+        )}
+        ListEmptyComponent={<EmptyState text="Produk tidak ditemukan" />}
+      />
     </>
   );
 }
 
 function FavoritesPage({ favorites, onProduct }) {
+  const { width } = useWindowDimensions();
+  const numColumns = width >= 768 ? 4 : width >= 500 ? 3 : 2;
+
   return (
     <>
       <HeaderBar title="FAVORIT" subtitle="Produk tersimpan" />
-      <ScrollView contentContainerStyle={styles.content}>
-        {favorites.length ? <View style={styles.grid}>
-          {favorites.map((product) => <Card key={product.title} {...product} onPress={() => onProduct(product)} />)}
-        </View> : <EmptyState text="Belum ada produk favorit" />}
-      </ScrollView>
+      <FlatList
+        data={favorites}
+        numColumns={numColumns}
+        key={numColumns}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+        columnWrapperStyle={favorites.length ? styles.grid : undefined}
+        renderItem={({ item }) => (
+          <Card {...item} columns={numColumns} onPress={() => onProduct(item)} />
+        )}
+        ListEmptyComponent={<EmptyState text="Belum ada produk favorit" />}
+      />
     </>
   );
 }
@@ -207,8 +229,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   loading: { flex: 1 },
   content: { padding: 16, paddingBottom: 24 },
-  chips: { gap: 8, paddingBottom: 10 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  grid: { justifyContent: 'space-between' },
   nav: { height: 60, flexDirection: 'row', justifyContent: 'space-around', borderTopWidth: 1, paddingTop: 7, paddingBottom: 7 },
   navItem: { alignItems: 'center', minWidth: 72 },
   navLabel: { fontFamily: 'Inter_700Bold', fontSize: 12, marginTop: 2 },
@@ -219,8 +240,11 @@ const styles = StyleSheet.create({
   systemMode: { alignItems: 'center', padding: 16 },
   systemText: { fontFamily: 'Inter_700Bold', fontSize: 14 },
   detail: { padding: 16 },
-  detailImage: { height: 315, borderRadius: 16, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  detailAsset: { width: '90%', height: 290 },
+  detailImage: {
+    height: 300, borderRadius: 16, alignItems: 'center', justifyContent: 'center',
+    paddingVertical: 28, overflow: 'hidden', ...SHADOW_CARD,
+  },
+  detailAsset: { width: '78%', height: 230 },
   category: { fontFamily: 'Inter_700Bold', fontSize: 13, marginTop: 16 },
   detailTitle: { fontFamily: 'TomoTrompaPro', fontSize: 22, marginTop: 4 },
   detailPrice: { fontFamily: 'Inter_700Bold', fontSize: 17, marginTop: 10 },

@@ -6,13 +6,14 @@ import Rating from './Rating.js';
 // Figma "Card" (160 lebar, radius 12): Image art, Title, Price, Show Discount, Discount
 // image: URL string (uri) ATAU require('../../assets/x.png')
 // discount: angka (mis. 10) -> badge "-10%" di pojok gambar (Show Discount)
-export default function Card({ title, price, image, onPress, discount, rating }) {
+export default function Card({ title, price, image, onPress, discount, rating, columns = 2 }) {
   const colors = useTheme();
   const source = typeof image === 'string' ? { uri: image } : image;
+  const width = `${(100 - (columns - 1) * 2) / columns}%`;
   return (
-    <Pressable style={[styles.card, { backgroundColor: colors.card }]} onPress={onPress}>
-      <View>
-        <Image source={source} style={[styles.image, { backgroundColor: colors.card }]} resizeMode="contain" />
+    <Pressable style={[styles.card, { width, backgroundColor: colors.card }]} onPress={onPress}>
+      <View style={[styles.imageWrap, { backgroundColor: colors.background }]}>
+        <Image source={source} style={styles.image} resizeMode="contain" />
         {discount ? (
           <View style={[styles.badge, { backgroundColor: colors.accent }]}>
             <Text style={[styles.badgeText, { color: colors.text }]}>-{discount}%</Text>
@@ -34,7 +35,11 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md, overflow: 'hidden',
     ...SHADOW_CARD,
   },
-  image: { width: '100%', height: 154 },
+  imageWrap: {
+    height: 154, alignItems: 'center', justifyContent: 'center',
+    paddingVertical: 18,
+  },
+  image: { width: '70%', height: 118 },
   badge: {
     position: 'absolute', top: 8, left: 8,
     borderRadius: RADIUS.md,
