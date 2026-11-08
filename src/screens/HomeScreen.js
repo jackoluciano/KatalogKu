@@ -7,7 +7,7 @@ import Card from '../components/Card';
 import { DUMMY_PRODUCTS } from '../data/dummy';
 import { useTheme } from '../theme/ThemeContext';
 
-export default function HomeScreen({ onProduct }) {
+export default function HomeScreen({ navigation }) {
   const colors = useTheme();
   const { width } = useWindowDimensions();
   const numColumns = width >= 768 ? 4 : width >= 500 ? 3 : 2;
@@ -66,7 +66,11 @@ export default function HomeScreen({ onProduct }) {
           <Text style={[styles.empty, { color: colors.muted }]}>Produk tidak ditemukan</Text>
         }
         renderItem={({ item }) => (
-          <Card {...item} columns={numColumns} onPress={() => onProduct(item)} />
+          <Card
+            {...item}
+            columns={numColumns}
+            onPress={() => navigation.navigate('Detail', { product: item })}
+          />
         )}
       />
     </>

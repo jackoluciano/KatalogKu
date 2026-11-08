@@ -5,11 +5,12 @@ import Rating from '../components/Rating';
 import { FONTS, SHADOW_CARD } from '../theme/tokens';
 import { useTheme } from '../theme/ThemeContext';
 
-export default function DetailScreen({ product, isFavorite, onFavorite, onBack }) {
+export default function DetailScreen({ route, navigation }) {
+  const { product } = route.params;
   const colors = useTheme();
   return (
     <>
-      <HeaderBar title="DETAIL PRODUK" onBack={onBack} />
+      <HeaderBar title={product.title} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.imageBox, { backgroundColor: colors.card }]}>
           <Image source={product.thumbnail} style={styles.image} resizeMode="contain" />
@@ -20,8 +21,8 @@ export default function DetailScreen({ product, isFavorite, onFavorite, onBack }
         <Rating value={product.rating} />
         <Text style={[styles.description, { color: colors.text }]}>{product.description}</Text>
         <Button
-          title={isFavorite ? 'Hapus dari Favorit' : 'Tambah ke Favorit'}
-          onPress={onFavorite}
+          title="Tambah ke Favorit"
+          onPress={() => {}}
         />
       </ScrollView>
     </>
