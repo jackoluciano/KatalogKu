@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { FlatList, ImageBackground, StyleSheet, Text, useWindowDimensions } from 'react-native';
+import { FlatList, ImageBackground, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import HeaderBar from '../components/HeaderBar';
 import CustomInput from '../components/CustomInput';
 import CategoryChips from '../components/CategoryChips';
@@ -29,7 +29,7 @@ export default function HomeScreen({ navigation }) {
   }, [category, query, sort]);
 
   return (
-    <>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <HeaderBar title="KATALOGKU" subtitle="Temukan produk favoritmu" />
       <FlatList
         key={numColumns}
@@ -73,11 +73,12 @@ export default function HomeScreen({ navigation }) {
           />
         )}
       />
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: { flex: 1 },
   list: { padding: 16, paddingBottom: 24 },
   grid: { justifyContent: 'space-between' },
   empty: { textAlign: 'center', marginTop: 40 },

@@ -11,17 +11,24 @@ import ProfilScreen from '../screens/ProfilScreen';
 import CartScreen from '../screens/CartScreen';
 import TentangScreen from '../screens/TentangScreen';
 import { COLORS } from '../theme/colors';
+import { useFavorit } from '../context/FavoritContext';
+import { useTheme } from '../theme/ThemeContext';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const ICONS = { Beranda: 'home', Favorit: 'heart', Keranjang: 'cart', Profil: 'person' };
 
 function TabNavigator() {
+  const { favorit } = useFavorit();
+  const colors = useTheme();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: COLORS.primary,
+        tabBarActiveTintColor: colors.primary || COLORS.primary,
+        tabBarInactiveTintColor: colors.muted,
+        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border },
+        tabBarBadge: route.name === 'Favorit' ? favorit.length || undefined : undefined,
         tabBarIcon: ({ color, size }) => (
           <Ionicons name={ICONS[route.name]} size={size}
             color={color} />
@@ -36,9 +43,14 @@ function TabNavigator() {
 }
 
 export default function AppNavigator() {
+  const colors = useTheme();
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+        }}>
         <Stack.Screen name="Main" component={TabNavigator} />
         <Stack.Screen name="Detail" component={DetailScreen} />
         <Stack.Screen name="Tentang" component={TentangScreen} />
