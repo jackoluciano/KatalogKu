@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
-  ActivityIndicator, FlatList, Image, Pressable, ScrollView, StyleSheet, Switch, Text, View,
-  useColorScheme, useWindowDimensions,
+  ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Switch, Text, View, useColorScheme,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,12 +11,10 @@ import HeaderBar from './src/components/HeaderBar';
 import Button from './src/components/Button';
 import Card from './src/components/Card';
 import CustomInput from './src/components/CustomInput';
-import CategoryChips from './src/components/CategoryChips';
-import Rating from './src/components/Rating.js';
 import { DARK_COLORS, LIGHT_COLORS } from './src/theme/colors';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
-import { DUMMY_PRODUCTS } from './src/data/dummy';
-import { SHADOW_CARD } from './src/theme/tokens';
+import HomeScreen from './src/screens/HomeScreen';
+import DetailScreen from './src/screens/DetailScreen';
 
 export default function App() {
   const systemScheme = useColorScheme();
@@ -42,14 +40,6 @@ function CatalogApp({ themeMode, setThemeMode }) {
   const [page, setPage] = useState('home');
   const [selected, setSelected] = useState(null);
   const [favorites, setFavorites] = useState([]);
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('Semua');
-
-  const visibleProducts = useMemo(() => DUMMY_PRODUCTS.filter((product) => (
-    (category === 'Semua' || product.category === category)
-    && product.title.toLowerCase().includes(search.toLowerCase())
-  )), [category, search]);
-
   function openProduct(product) {
     setSelected(product);
     setPage('detail');
@@ -65,8 +55,7 @@ function CatalogApp({ themeMode, setThemeMode }) {
     <SafeAreaProvider>
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         {page === 'home' && (
-          <HomePage products={visibleProducts} search={search} setSearch={setSearch}
-            category={category} setCategory={setCategory} onProduct={openProduct} />
+          <HomeScreen onProduct={openProduct} />
         )}
         {page === 'favorites' && (
           <FavoritesPage favorites={favorites} onProduct={openProduct} />
@@ -75,7 +64,7 @@ function CatalogApp({ themeMode, setThemeMode }) {
           <ProfilePage themeMode={themeMode} setThemeMode={setThemeMode} />
         )}
         {page === 'detail' && selected && (
-          <DetailPage product={selected} isFavorite={favorites.some((item) => item.title === selected.title)}
+          <DetailScreen product={selected} isFavorite={favorites.some((item) => item.title === selected.title)}
             onFavorite={() => toggleFavorite(selected)} onBack={() => setPage('home')} />
         )}
         {page !== 'detail' && (
@@ -83,40 +72,6 @@ function CatalogApp({ themeMode, setThemeMode }) {
         )}
       </View>
     </SafeAreaProvider>
-  );
-}
-
-function HomePage({ products, search, setSearch, category, setCategory, onProduct }) {
-  const { width } = useWindowDimensions();
-  const numColumns = width >= 768 ? 4 : width >= 500 ? 3 : 2;
-
-  return (
-    <>
-      <HeaderBar title="KATALOGKU" subtitle="Temukan produk favorit" />
-      <FlatList
-        data={products}
-        numColumns={numColumns}
-        key={numColumns}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-        columnWrapperStyle={styles.grid}
-        ListHeaderComponent={
-          <>
-            <CustomInput icon="search" placeholder="Cari produk..." value={search} onChangeText={setSearch} />
-            <CategoryChips
-              items={['Semua', 'fashion', 'groceries', 'electronics']}
-              selected={category}
-              onSelect={setCategory}
-            />
-          </>
-        }
-        renderItem={({ item }) => (
-          <Card {...item} columns={numColumns} onPress={() => onProduct(item)} />
-        )}
-        ListEmptyComponent={<EmptyState text="Produk tidak ditemukan" />}
-      />
-    </>
   );
 }
 
@@ -176,30 +131,6 @@ function ProfilePage({ themeMode, setThemeMode }) {
   );
 }
 
-function DetailPage({ product, isFavorite, onFavorite, onBack }) {
-  const colors = useTheme();
-  return (
-    <>
-      <HeaderBar title="DETAIL PRODUK" onBack={onBack} />
-      <ScrollView contentContainerStyle={styles.detail}>
-        <View style={[styles.detailImage, { backgroundColor: colors.card }]}>
-          <CardImage product={product} />
-        </View>
-        <Text style={[styles.category, { color: colors.muted }]}>{product.category.toUpperCase()}</Text>
-        <Text style={[styles.detailTitle, { color: colors.text }]}>{product.title}</Text>
-        <Text style={[styles.detailPrice, { color: colors.primary }]}>$ {product.price}</Text>
-        <Rating value={product.rating} />
-        <Text style={[styles.description, { color: colors.text }]}>{product.description}</Text>
-        <Button title={isFavorite ? 'Hapus dari Favorit' : 'Tambah ke Favorit'} onPress={onFavorite} />
-      </ScrollView>
-    </>
-  );
-}
-
-function CardImage({ product }) {
-  return <Image source={product.image} style={styles.detailAsset} resizeMode="contain" />;
-}
-
 function EmptyState({ text }) {
   const colors = useTheme();
   return <Text style={[styles.empty, { color: colors.muted }]}>{text}</Text>;
@@ -239,15 +170,5 @@ const styles = StyleSheet.create({
   themeHint: { fontFamily: 'Inter_400Regular', fontSize: 12, marginTop: 4 },
   systemMode: { alignItems: 'center', padding: 16 },
   systemText: { fontFamily: 'Inter_700Bold', fontSize: 14 },
-  detail: { padding: 16 },
-  detailImage: {
-    height: 300, borderRadius: 16, alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 28, overflow: 'hidden', ...SHADOW_CARD,
-  },
-  detailAsset: { width: '78%', height: 230 },
-  category: { fontFamily: 'Inter_700Bold', fontSize: 13, marginTop: 16 },
-  detailTitle: { fontFamily: 'TomoTrompaPro', fontSize: 22, marginTop: 4 },
-  detailPrice: { fontFamily: 'Inter_700Bold', fontSize: 17, marginTop: 10 },
-  description: { fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 22, marginVertical: 20 },
   empty: { textAlign: 'center', fontFamily: 'Inter_400Regular', marginTop: 80 },
 });

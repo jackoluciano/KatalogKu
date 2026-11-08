@@ -4,11 +4,11 @@ import { useTheme } from '../theme/ThemeContext';
 import Rating from './Rating.js';
 
 // Figma "Card" (160 lebar, radius 12): Image art, Title, Price, Show Discount, Discount
-// image: URL string (uri) ATAU require('../../assets/x.png')
+// thumbnail: URL string (uri) ATAU require('../../assets/x.png')
 // discount: angka (mis. 10) -> badge "-10%" di pojok gambar (Show Discount)
-export default function Card({ title, price, image, onPress, discount, rating, columns = 2 }) {
+export default function Card({ title, price, thumbnail, onPress, discount, rating, columns = 2 }) {
   const colors = useTheme();
-  const source = typeof image === 'string' ? { uri: image } : image;
+  const source = typeof thumbnail === 'string' ? { uri: thumbnail } : thumbnail;
   const width = `${(100 - (columns - 1) * 2) / columns}%`;
   return (
     <Pressable style={[styles.card, { width, backgroundColor: colors.card }]} onPress={onPress}>
